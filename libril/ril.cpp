@@ -611,6 +611,7 @@ dispatchDial (Parcel &p, RequestInfo *pRI) {
     status_t status;
 
     memset (&dial, 0, sizeof(dial));
+    memset (&uusInfo, 0, sizeof(RIL_UUS_Info));
 
     dial.address = strdupReadString(p);
 
