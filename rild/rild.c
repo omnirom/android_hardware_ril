@@ -1,6 +1,6 @@
 /* //device/system/rild/rild.c
 **
-** Copyright 2006, The Android Open Source Project
+** Copyright 2006 The Android Open Source Project
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
 #include <cutils/properties.h>
 #include <cutils/sockets.h>
 #include <sys/capability.h>
-#include <linux/prctl.h>
+#include <sys/prctl.h>
 
 #include <private/android_filesystem_config.h>
 #include "hardware/qemu_pipe.h"
@@ -42,16 +42,24 @@
 static void usage(const char *argv0)
 {
     fprintf(stderr, "Usage: %s -l <ril impl library> [-- <args for impl library>]\n", argv0);
-    exit(-1);
+    exit(EXIT_FAILURE);
 }
+
+extern char rild[MAX_SOCKET_NAME_LENGTH];
 
 extern void RIL_register (const RIL_RadioFunctions *callbacks);
 
 extern void RIL_onRequestComplete(RIL_Token t, RIL_Errno e,
                            void *response, size_t responselen);
 
+
+#if defined(ANDROID_MULTI_SIM)
+extern void RIL_onUnsolicitedResponse(int unsolResponse, const void *data,
+                                size_t datalen, RIL_SOCKET_ID socket_id);
+#else
 extern void RIL_onUnsolicitedResponse(int unsolResponse, const void *data,
                                 size_t datalen);
+#endif
 
 extern void RIL_requestTimedCallback (RIL_TimedCallback callback,
                                void *param, const struct timeval *relativeTime);
@@ -89,12 +97,23 @@ void switchUser() {
     setuid(AID_RADIO);
 
     struct __user_cap_header_struct header;
-    struct __user_cap_data_struct cap;
-    header.version = _LINUX_CAPABILITY_VERSION;
+    memset(&header, 0, sizeof(header));
+    header.version = _LINUX_CAPABILITY_VERSION_3;
     header.pid = 0;
-    cap.effective = cap.permitted = (1 << CAP_NET_ADMIN) | (1 << CAP_NET_RAW);
-    cap.inheritable = 0;
-    capset(&header, &cap);
+
+    struct __user_cap_data_struct data[2];
+    memset(&data, 0, sizeof(data));
+
+    data[CAP_TO_INDEX(CAP_NET_ADMIN)].effective |= CAP_TO_MASK(CAP_NET_ADMIN);
+    data[CAP_TO_INDEX(CAP_NET_ADMIN)].permitted |= CAP_TO_MASK(CAP_NET_ADMIN);
+
+    data[CAP_TO_INDEX(CAP_NET_RAW)].effective |= CAP_TO_MASK(CAP_NET_RAW);
+    data[CAP_TO_INDEX(CAP_NET_RAW)].permitted |= CAP_TO_MASK(CAP_NET_RAW);
+
+    if (capset(&header, &data[0]) == -1) {
+        RLOGE("capset failed: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 }
 
 int main(int argc, char **argv)
@@ -108,6 +127,9 @@ int main(int argc, char **argv)
     unsigned char hasLibArgs = 0;
 
     int i;
+    const char *clientId = NULL;
+    RLOGD("**RIL Daemon Started**");
+    RLOGD("**RILd param count=%d**", argc);
 
     umask(S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH);
     for (i = 1; i < argc ;) {
@@ -118,9 +140,22 @@ int main(int argc, char **argv)
             i++;
             hasLibArgs = 1;
             break;
+        } else if (0 == strcmp(argv[i], "-c") &&  (argc - i > 1)) {
+            clientId = argv[i+1];
+            i += 2;
         } else {
             usage(argv[0]);
         }
+    }
+
+    if (clientId == NULL) {
+        clientId = "0";
+    } else if (atoi(clientId) >= MAX_RILDS) {
+        RLOGE("Max Number of rild's supported is: %d", MAX_RILDS);
+        exit(0);
+    }
+    if (strncmp(clientId, "0", MAX_CLIENT_ID_LENGTH)) {
+        RIL_setRilSocketName(strncat(rild, clientId, MAX_SOCKET_NAME_LENGTH));
     }
 
     if (rilLibPath == NULL) {
@@ -136,11 +171,11 @@ int main(int argc, char **argv)
     /* special override when in the emulator */
 #if 1
     {
-        static char*  arg_overrides[3];
+        static char*  arg_overrides[5];
         static char   arg_device[32];
         int           done = 0;
 
-#define  REFERENCE_RIL_PATH  "/system/lib/libreference-ril.so"
+#define  REFERENCE_RIL_PATH  "libreference-ril.so"
 
         /* first, read /proc/cmdline into memory */
         char          buffer[1024], *p, *q;
@@ -246,7 +281,7 @@ OpenLib:
 
     if (dlHandle == NULL) {
         RLOGE("dlopen failed: %s", dlerror());
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     RIL_startEventLoop();
@@ -255,7 +290,7 @@ OpenLib:
 
     if (rilInit == NULL) {
         RLOGE("RIL_Init not defined or exported in %s\n", rilLibPath);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     if (hasLibArgs) {
@@ -269,18 +304,24 @@ OpenLib:
         argc = make_argv(args, rilArgv);
     }
 
+    rilArgv[argc++] = "-c";
+    rilArgv[argc++] = clientId;
+    RLOGD("RIL_Init argc = %d clientId = %s", argc, rilArgv[argc-1]);
+
     // Make sure there's a reasonable argv[0]
     rilArgv[0] = argv[0];
 
     funcs = rilInit(&s_rilEnv, argc, rilArgv);
+    RLOGD("RIL_Init rilInit completed");
 
     RIL_register(funcs);
 
+    RLOGD("RIL_Init RIL_register completed");
+
 done:
 
-    while(1) {
-        // sleep(UINT32_MAX) seems to return immediately on bionic
-        sleep(0x00ffffff);
+    RLOGD("RIL_Init starting sleep loop");
+    while (true) {
+        sleep(UINT32_MAX);
     }
 }
-

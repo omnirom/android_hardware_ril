@@ -17,10 +17,10 @@ LOCAL_SHARED_LIBRARIES := \
 # for asprinf
 LOCAL_CFLAGS := -D_GNU_SOURCE
 
-LOCAL_C_INCLUDES := $(KERNEL_HEADERS)
+LOCAL_C_INCLUDES :=
 
 ifeq ($(TARGET_DEVICE),sooner)
-  LOCAL_CFLAGS += -DOMAP_CSMI_POWER_CONTROL -DUSE_TI_COMMANDS
+  LOCAL_CFLAGS += -DUSE_TI_COMMANDS
 endif
 
 ifeq ($(TARGET_DEVICE),surf)
@@ -35,7 +35,6 @@ ifeq (foo,foo)
   #build shared library
   LOCAL_SHARED_LIBRARIES += \
       libcutils libutils
-  LOCAL_LDLIBS += -lpthread
   LOCAL_CFLAGS += -DRIL_SHLIB
   LOCAL_MODULE:= libreference-ril
   include $(BUILD_SHARED_LIBRARY)
