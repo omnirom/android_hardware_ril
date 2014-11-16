@@ -53,6 +53,8 @@ extern void RIL_onRequestComplete(RIL_Token t, RIL_Errno e,
                            void *response, size_t responselen);
 
 
+char rild[MAX_SOCKET_NAME_LENGTH] = "rild";
+
 #if defined(ANDROID_MULTI_SIM)
 extern void RIL_onUnsolicitedResponse(int unsolResponse, const void *data,
                                 size_t datalen, RIL_SOCKET_ID socket_id);
@@ -155,7 +157,7 @@ int main(int argc, char **argv)
         exit(0);
     }
     if (strncmp(clientId, "0", MAX_CLIENT_ID_LENGTH)) {
-        RIL_setRilSocketName(strncat(rild, clientId, MAX_SOCKET_NAME_LENGTH));
+      strncpy(rild,strncat("rild", clientId, MAX_SOCKET_NAME_LENGTH) , MAX_SOCKET_NAME_LENGTH);
     }
 
     if (rilLibPath == NULL) {
