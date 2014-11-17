@@ -45,13 +45,14 @@ static void usage(const char *argv0)
     exit(EXIT_FAILURE);
 }
 
-extern char rild[MAX_SOCKET_NAME_LENGTH];
+extern char rild[MAX_SOCKET_NAME_LENGTH]  __attribute__ ((weak));
 
 extern void RIL_register (const RIL_RadioFunctions *callbacks);
 
 extern void RIL_onRequestComplete(RIL_Token t, RIL_Errno e,
                            void *response, size_t responselen);
 
+extern void RIL_setRilSocketName(char * s) __attribute__ ((weak));
 
 #if defined(ANDROID_MULTI_SIM)
 extern void RIL_onUnsolicitedResponse(int unsolResponse, const void *data,
