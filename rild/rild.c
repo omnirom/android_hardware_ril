@@ -45,8 +45,6 @@ static void usage(const char *argv0)
     exit(EXIT_FAILURE);
 }
 
-extern char rild[MAX_SOCKET_NAME_LENGTH];
-
 extern void RIL_register (const RIL_RadioFunctions *callbacks);
 
 extern void RIL_onRequestComplete(RIL_Token t, RIL_Errno e,
@@ -153,9 +151,6 @@ int main(int argc, char **argv)
     } else if (atoi(clientId) >= MAX_RILDS) {
         RLOGE("Max Number of rild's supported is: %d", MAX_RILDS);
         exit(0);
-    }
-    if (strncmp(clientId, "0", MAX_CLIENT_ID_LENGTH)) {
-        RIL_setRilSocketName(strncat(rild, clientId, MAX_SOCKET_NAME_LENGTH));
     }
 
     if (rilLibPath == NULL) {
