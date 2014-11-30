@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2b432935_14f59a80",
+        "filename": "libril/Android.mk",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000026
+      },
+      "writtenOn": "2014-11-30T11:51:54Z",
+      "side": 1,
+      "message": "That dont look good :)",
+      "revId": "3e0bcd69332e41bae847befef05a86fa43fda7ce",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55",
+      "unresolved": false
+    }
+  ]
+}
