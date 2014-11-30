@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2b432935_d4379249",
+        "filename": "rild/rild.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1000026
+      },
+      "writtenOn": "2014-11-30T13:53:27Z",
+      "side": 1,
+      "message": "Just nitpicking - but why you still log this even if you dont provide a clientId?",
+      "revId": "e40773c9f7865be844874a82d1f75f74e7deb9c8",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55",
+      "unresolved": false
+    }
+  ]
+}
