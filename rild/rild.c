@@ -304,9 +304,13 @@ OpenLib:
         argc = make_argv(args, rilArgv);
     }
 
+#ifndef SAMSUNG_PROPRIETARY_RIL_WORKAROUND
     rilArgv[argc++] = "-c";
     rilArgv[argc++] = clientId;
     RLOGD("RIL_Init argc = %d clientId = %s", argc, rilArgv[argc-1]);
+#else
+    RLOGD("RIL_Init argc = %d", argc);
+#endif
 
     // Make sure there's a reasonable argv[0]
     rilArgv[0] = argv[0];
