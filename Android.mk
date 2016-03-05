@@ -1,3 +1,4 @@
+ifneq ($(TARGET_PREBUILT_RIL),)
 ifeq ($(TARGET_RIL_VARIANT),)
     RIL_ROOT := $(call my-dir)
 
@@ -5,4 +6,5 @@ ifeq ($(TARGET_RIL_VARIANT),)
     include $(RIL_ROOT)/librilutils/Android.mk
     include $(RIL_ROOT)/reference-ril/Android.mk
     include $(RIL_ROOT)/rild/Android.mk
+endif
 endif
