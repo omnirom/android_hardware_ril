@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5804b501_2546747a",
+        "filename": "rild/rild.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1000124
+      },
+      "writtenOn": "2016-07-01T14:05:10Z",
+      "side": 0,
+      "message": "only devices declaring QCOM_HARDWARE should be here anyway, no need for this ifdef anymore",
+      "revId": "ab99aa4c7cd190557eb70ce35b011eb21172595d",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55",
+      "unresolved": false
+    }
+  ]
+}
