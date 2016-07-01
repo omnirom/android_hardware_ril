@@ -32,10 +32,6 @@ extern "C" {
 #endif
 
 
-#ifndef RIL_QCOM_VERSION
-#define RIL_QCOM_VERSION 3
-#endif
-
 #if defined(ANDROID_SIM_COUNT_2)
 #define SIM_COUNT 2
 #elif defined(ANDROID_SIM_COUNT_3)
@@ -50,17 +46,8 @@ extern "C" {
 #define SIM_COUNT 1
 #endif
 
-#ifdef USE_RIL_VERSION_10
-#define RIL_VERSION 10
-#else
 #define RIL_VERSION 11     /* Current version */
-#endif
-
-#ifdef LEGACY_RIL
-#define RIL_VERSION_MIN 2 /* Minimum RIL_VERSION supported */
-#else
 #define RIL_VERSION_MIN 6 /* Minimum RIL_VERSION supported */
-#endif
 
 #define CDMA_ALPHA_INFO_BUFFER_LENGTH 64
 #define CDMA_NUMBER_INFO_BUFFER_LENGTH 81
@@ -408,7 +395,6 @@ typedef struct {
                                  via PCO(Protocol Configuration Option) for IMS client. */
 } RIL_Data_Call_Response_v9;
 
-#if (RIL_VERSION == 11)
 typedef struct {
     int             status;     /* A RIL_DataCallFailCause, 0 which is PDP_FAIL_NONE if no error */
     int             suggestedRetryTime; /* If status != 0, this fields indicates the suggested retry
@@ -444,7 +430,6 @@ typedef struct {
                                    Value <= 0 means network has either not sent a value or
                                    sent an invalid value */
 } RIL_Data_Call_Response_v11;
-#endif
 
 typedef enum {
     RADIO_TECH_3GPP = 1, /* 3GPP Technologies - GSM, WCDMA */
@@ -733,6 +718,8 @@ typedef enum {
     PDP_FAIL_TETHERED_CALL_ACTIVE = -6,   /* data call was disconnected by modem because tethered
                                              mode was up on same APN/data profile - no retry until
                                              tethered call is off */
+    PDP_FAIL_IPV4_CALL_THROTTLED = -7,
+    PDP_FAIL_IPV6_CALL_THROTTLED = -8,
 
     PDP_FAIL_ERROR_UNSPECIFIED = 0xffff,  /* retry silently */
 } RIL_DataCallFailCause;
@@ -1504,6 +1491,12 @@ typedef struct {
   /* period (in ms) for which Rx is active */
   uint32_t rx_mode_time_ms;
 } RIL_ActivityStatsInfo;
+
+typedef struct {
+    uint8_t p2; /* P2 parameter */
+    char * aidPtr; /* AID value, See ETSI 102.221 and 101.220*/
+
+} RIL_CafOpenChannelParams;
 
 /**
  * RIL_REQUEST_GET_SIM_STATUS
@@ -4031,7 +4024,7 @@ typedef struct {
  * RIL_REQUEST_VOICE_RADIO_TECH
  *
  * Query the radio technology type (3GPP/3GPP2) used for voice. Query is valid only
- * when radio state is RADIO_STATE_ON
+ * when radio state is not RADIO_STATE_UNAVAILABLE
  *
  * "data" is NULL
  * "response" is int *
@@ -4531,8 +4524,50 @@ typedef struct {
  */
 #define RIL_REQUEST_GET_ACTIVITY_INFO 135
 
-/***********************************************************************/
+/**
+ * RIL_REQUEST_SIM_GET_ATR
+ *
+ * Get the ATR from SIM Card
+ *
+ * Only valid when radio state is "RADIO_STATE_ON"
+ *
+ * "data" is const int *
+ * ((const int *)data)[0] contains the slot index on the SIM from which ATR is requested.
+ *
+ * "response" is a const char * containing the ATR, See ETSI 102.221 8.1 and ISO/IEC 7816 3
+ *
+ * Valid errors:
+ *
+ * SUCCESS
+ * RADIO_NOT_AVAILABLE (radio resetting)
+ * GENERIC_FAILURE
+ */
+#define RIL_REQUEST_SIM_GET_ATR 136
 
+/**
+ * RIL_REQUEST_CAF_SIM_OPEN_CHANNEL_WITH_P2
+ *
+ * Open a new logical channel and select the given application. This command
+ * reflects TS 27.007 "open logical channel" operation (+CCHO). This request
+ * also specifies the P2 parameter.
+ *
+ * "data" is a const RIL_CafOpenChannelParam *
+ *
+ * "response" is int *
+ * ((int *)data)[0] contains the session id of the logical channel.
+ * ((int *)data)[1] onwards may optionally contain the select response for the
+ *     open channel command with one byte per integer.
+ *
+ * Valid errors:
+ *  SUCCESS
+ *  RADIO_NOT_AVAILABLE
+ *  GENERIC_FAILURE
+ *  MISSING_RESOURCE
+ *  NO_SUCH_ELEMENT
+ */
+#define RIL_REQUEST_CAF_SIM_OPEN_CHANNEL_WITH_P2 137
+
+/***********************************************************************/
 
 #define RIL_UNSOL_RESPONSE_BASE 1000
 
