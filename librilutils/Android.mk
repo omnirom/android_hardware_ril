@@ -17,7 +17,6 @@ LOCAL_EXPORT_C_INCLUDE_DIRS := \
 LOCAL_PROTOC_OPTIMIZE_TYPE := nanopb-c-enable_malloc
 
 LOCAL_MODULE:= librilutils
-LOCAL_VENDOR_MODULE:= true
 
 include $(BUILD_SHARED_LIBRARY)
 
@@ -40,7 +39,6 @@ LOCAL_EXPORT_C_INCLUDE_DIRS := \
 LOCAL_PROTOC_OPTIMIZE_TYPE := nanopb-c-enable_malloc
 
 LOCAL_MODULE:= librilutils_static
-iLOCAL_VENDOR_MODULE:= true
 
 include $(BUILD_STATIC_LIBRARY)
 
